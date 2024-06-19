@@ -91,3 +91,57 @@ activity <- activity %>% mutate(day = weekdays(activity$date))
 summary(activity)
 ```
 
+# Mean total number of steps taken per day
+First let's calculate the total number of steps taken per day. 
+```{r}
+steps_per_day <- activity %>% 
+  group_by(date) %>% 
+  summarise(total_step = sum(steps, na.rm = TRUE))
+```
+Table `steps_per_day` contains the dates and the corresponding total steps. Let's have a look at on the structure of this table:
+```{r}
+steps_per_day %>% print(n = 10)
+```
+
+Create a histogram with `ggplot2`:
+```{r hist1}
+g <- ggplot(steps_per_day, aes(x = total_step)) + 
+  geom_histogram(breaks = seq(0, 25000, by = 2500), color = "#000000", fill = "#0099F8")
+print(g)
+```
+
+Calculating the mean and median and adding them to the histogram:
+```{r hist2}
+# Mean and median
+mean_steps <- mean(steps_per_day$total_step) %>% round(digits = 0)
+median_steps <- median(steps_per_day$total_step) %>% round(digits = 0)
+
+# Annotate them
+annotation1 <- data.frame(
+  x = c(mean_steps, median_steps),
+  y = c(25, 22),
+  label = c("Mean:", "Median:")
+)
+
+g2 <- ggplot(steps_per_day, aes(x = total_step)) + 
+  geom_histogram(breaks = seq(0, 25000, by = 2500), color = "#000000", fill = "#0099F8") +
+  xlab("Total steps") +
+  ylab("Frequency") +
+  geom_vline(aes(xintercept = mean(total_step)), color = "#00FF00", size = 1.25) +
+  geom_vline(aes(xintercept = median(total_step)), color = "#FF0000", size = 1.25) +
+  geom_text(data = annotation1, 
+            aes(x = 1000, y = y, label = paste(label, x)), 
+            size = 5, 
+            fontface = "bold",
+            color = c("#00FF00", "#FF0000"))
+print(g2)
+```
+
+As we can see in the plot, the mean is 
+```{r}
+mean_steps
+```
+and the median is 
+```{r}
+median_steps
+```
