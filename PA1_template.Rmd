@@ -1,25 +1,93 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
+title: "Course Project 1 - Activity Data study"
+subtitle: "Reproducible Research | JHU | Coursera"
+author: "Akos Arendas"
+date: "2024-06-18"
 output: 
   html_document:
-    keep_md: true
+    toc: true
+    number_sections: true
 ---
 
+# Introduction
+This assignment is a study for a course project for a Reproducible Research online course in Coursera, held by Johns Hopkins University.
 
-## Loading and preprocessing the data
+The following introduction is copied from the project description that gives a background and motivation for the the analysis.
 
+## Project description
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
-## What is mean total number of steps taken per day?
+## Data
+The data for this assignment can be downloaded from the course web site: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)
 
+The variables included in this dataset are:
 
+* steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+* date: The date on which the measurement was taken in YYYY-MM-DD format
+* interval: Identifier for the 5-minute interval in which measurement was taken
 
-## What is the average daily activity pattern?
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 
+## Objectives
+Commit containing full submission
 
+1. Code for reading in the dataset and/or processing the data
 
-## Imputing missing values
+2. Histogram of the total number of steps taken each day
 
+1. Mean and median number of steps taken each day
 
+1. Time series plot of the average number of steps taken
 
-## Are there differences in activity patterns between weekdays and weekends?
+1. The 5-minute interval that, on average, contains the maximum number of steps
+
+1. Code to describe and show a strategy for imputing missing data
+
+1. Histogram of the total number of steps taken each day after missing values are imputed
+
+1. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+1. All of the R code needed to reproduce the results (numbers, plots, etc.) in the report
+
+# Global Options
+```{r setup, include = TRUE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 5,
+                      fig.keep = 'all' ,fig.path = 'figures\ ', dev = 'png')
+```
+
+This code chunk in R markdown sets up some global options for the document. Specifically, it configures the chunk options for the R code chunks in the document. 
+
+- `echo = TRUE`: This option determines whether the R code in the chunks will be displayed along with its output.
+- `message = FALSE`: This option suppresses messages generated during the code execution.
+- `warning = FALSE`: This option suppresses warnings generated during the code execution.
+- `fig.width = 10` and `fig.height = 5`: These options specify the width and height of the output figures generated from the code chunks.
+- `fig.keep = 'all'`: This option tells the document to keep all figures generated.
+- `fig.path = 'figures\ '`: This sets the directory where the figures will be saved.
+- `dev = 'png'`: This specifies the device to be used for plotting, in this case, PNG format.
+
+# Loading and pre-processing the data
+
+```{r}
+# Loading packages
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+
+# Unzipping the file and reading it
+path = getwd()
+unzip("activity.zip", exdir = path)
+
+activity <- read.csv("activity.csv")
+
+# Setting date format
+activity$date <- as.Date(activity$date, "%Y-%m-%d")
+
+# Adding the days to the data set 
+activity <- activity %>% mutate(day = weekdays(activity$date))
+
+# Viewing the processed data
+summary(activity)
+```
+
