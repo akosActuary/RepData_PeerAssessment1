@@ -177,4 +177,89 @@ The following interval contains the most steps:
 avg_max_int <- averageDailyActivity[which.max(averageDailyActivity$Mean), ]$Interval
 avg_max_int
 ```
+
+# Imputing missing values
+There are some missing values in the data, which might lead to bias. Hence it's worth to analyse them further.
+
+First let's check the the total number of missing values in the dataset (i.e. the total number of rows with NAs).
+
+```{r}
+# Check how many NAs do we have in the different columns
+na_count <- colSums(is.na(activity))
+na_count
+```
+Only in column `steps` there are occurrences for NA records, thus we can focus on that. For the record, the number of NA values in that column is `r na_count[1]`.
+
+Let's replace the NAs with estimations. I chose the mest estimates as the median of the corresponding 5-minute interval.
+```{r}
+# Replace NAs with the 5-minute interval accordingly
+medianIntervalActivity <- aggregate(activity$steps, 
+                                  by = list(activity$interval), 
+                                  FUN = median, 
+                                  na.rm = TRUE)
+# Changing colNames
+names(medianIntervalActivity) <- c("Interval", "Median")
+
+medianIntervalActivityDf <- data.frame(medianIntervalActivity)
+
+# Replacing NA values in the original dataset with the medians
+activity_filled <- activity %>% 
+  left_join(x = activity,
+            y = medianIntervalActivityDf,
+            by = c("interval" = "Interval")) %>% 
+  mutate(steps_final = if_else(is.na(steps), Median, steps))
+
+# New dataset
+activity_new <- activity_filled %>% 
+  select(steps_final, date, interval, day) %>% 
+  rename(steps = steps_final)
+
+# Check NAs again
+na_count_new <- colSums(is.na(activity_new))
+na_count_new
+```
+
+Histogram for the filled activity dataset:
+```{r hist3}
+# Steps per day new
+steps_per_day_new <- activity_new %>% 
+  group_by(date) %>% 
+  summarise(total_step = sum(steps, na.rm = TRUE))
+
+# Mean and median
+mean_steps_new <- mean(steps_per_day_new$total_step) %>% round(digits = 0)
+median_steps_new <- median(steps_per_day_new$total_step) %>% round(digits = 0)
+
+# Annotate them
+annotation2 <- data.frame(
+  x = c(mean_steps_new, median_steps_new),
+  y = c(25, 22),
+  label = c("Mean (new):", "Median (new):")
+)
+
+g2 <- ggplot(steps_per_day_new, aes(x = total_step)) + 
+  geom_histogram(breaks = seq(0, 25000, by = 2500), color = "#000000", fill = "#0099F8") +
+  xlab("Total steps") +
+  ylab("Frequency") +
+  geom_vline(aes(xintercept = mean(total_step)), color = "#00FF00", size = 1.25) +
+  geom_vline(aes(xintercept = median(total_step)), color = "#FF0000", size = 1.25) +
+  geom_text(data = annotation2, 
+            aes(x = 2000, y = y, label = paste(label, x)), 
+            size = 5, 
+            fontface = "bold",
+            color = c("#00FF00", "#FF0000"))
+print(g2)
+```
+As we can see, the impact of replacing the NAs on the mean and on the median is:
+```{r}
+chg_mean <- mean_steps_new - mean_steps
+chg_mean_perc <- chg_mean / mean_steps
+chg_mean
+chg_mean_perc
+
+chg_med <- median_steps_new - median_steps
+chg_med_perc <- chg_med / median_steps
+chg_med
+chg_med_perc
+
 ```
