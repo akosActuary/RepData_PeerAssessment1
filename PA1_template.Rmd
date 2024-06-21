@@ -149,7 +149,7 @@ median_steps
 # Average daily activity pattern
 The steps are counted for each 5-minute interval.
 (In one day there is `24 * 60 / 5 = 288` five-minute interval, which equals with the unique values in the interval column of the data)
-```{r}
+```{r avgSteps1}
 # Calculating the average number of steps taken, averaged across all days by 5-min intervals.
 averageDailyActivity <- aggregate(activity$steps, 
                                   by = list(activity$interval), 
@@ -261,5 +261,33 @@ chg_med <- median_steps_new - median_steps
 chg_med_perc <- chg_med / median_steps
 chg_med
 chg_med_perc
+```
 
+# Analysis of Weekdays and Weekends
+Add weekday / weekend factor to the filled dataset.
+```{r}
+activity_new_ww <- activity_new %>% 
+  mutate(weekday = if_else(activity_new$day == "Saturday" | activity_new$day == "Sunday", "weekend", "weekday"))
+```
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+```{r avgSteps2}
+# Creating the data set that will be plotted
+activityByDay <-  aggregate(activity_new_ww$steps ~ activity_new_ww$interval + activity_new_ww$weekday, 
+                            activity_new_ww, 
+                            FUN = mean, 
+                            na.rm = TRUE)
+
+names(activityByDay) <- c("interval", "weekday", "steps")
+
+# Plotting using ggplot2
+dayPlot <-  ggplot(activityByDay, aes(x = interval , y = steps, color = weekday)) + 
+  geom_line() + 
+  ggtitle("Average Daily Steps by Day Type") + 
+  xlab("Interval") + 
+  ylab("Average Number of Steps") +
+  facet_wrap(~weekday, ncol = 1, nrow = 2) +
+  scale_color_discrete(name = "Day Type") +
+  theme_calc(base_family = "serif")
+
+print(dayPlot) 
 ```
