@@ -145,3 +145,36 @@ and the median is
 ```{r}
 median_steps
 ```
+
+# Average daily activity pattern
+The steps are counted for each 5-minute interval.
+(In one day there is `24 * 60 / 5 = 288` five-minute interval, which equals with the unique values in the interval column of the data)
+```{r}
+# Calculating the average number of steps taken, averaged across all days by 5-min intervals.
+averageDailyActivity <- aggregate(activity$steps, 
+                                  by = list(activity$interval), 
+                                  FUN = mean, 
+                                  na.rm = TRUE)
+# Changing col names
+names(averageDailyActivity) <- c("Interval", "Mean")
+
+# Converting the data set into a dataframe
+averageActivitydf <- data.frame(averageDailyActivity)
+
+# Plotting the result
+da1 <- ggplot(averageActivitydf, mapping = aes(Interval, Mean)) +
+  geom_line(col = "#0099F8") +
+  xlab("Interval") + 
+  ylab("Average Number of Steps") + 
+  ggtitle("Average Number of Steps Per Interval")
+
+print(da1)
+
+```
+
+The following interval contains the most steps: 
+```{r}
+avg_max_int <- averageDailyActivity[which.max(averageDailyActivity$Mean), ]$Interval
+avg_max_int
+```
+```
